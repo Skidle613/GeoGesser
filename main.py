@@ -2,7 +2,7 @@ import discord
 import sqlite3
 from random import shuffle
 
-TOKEN = 'OTY0MjA3MTU3NDg4NzgzNTUx.YlhR5A.rbN7cyMXrpdC9GdYnjOVfTrErLA'
+TOKEN = TOKEN
 
 
 class GeoGesser(discord.Client):
