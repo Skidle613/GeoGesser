@@ -67,6 +67,9 @@ class GeoGesser(discord.Client):
                         con.commit()
 
                     else:
+                        cur.execute("""UPDATE users SET processing = Null, ids_of_countries = NUll WHERE id = ?""",
+                                    (id,))
+                        con.commit()
                         await message.channel.send('Wrong')
                         await message.channel.send('The game have finished')
                 pairs = cur.execute("""SELECT name, capital FROM countries WHERE id IN (?, ?)""",
@@ -80,6 +83,8 @@ class GeoGesser(discord.Client):
                     cur.execute("""UPDATE users SET mlist = ? WHERE id = ?""", (mlist, id))
                     con.commit()
                 else:
+                    cur.execute("""UPDATE users SET processing = Null, ids_of_countries = NUll WHERE id = ?""", (id,))
+                    con.commit()
                     await message.channel.send('Wrong')
                     await message.channel.send('The game have finished')
         else:
