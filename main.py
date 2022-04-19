@@ -1,8 +1,7 @@
 import discord
 import sqlite3
 from random import shuffle
-
-TOKEN = TOKEN
+from key import TOKEN
 
 
 class GeoGesser(discord.Client):
@@ -19,7 +18,7 @@ class GeoGesser(discord.Client):
                 return
             if str(processing) == '1':
                 print('YES')
-                mlist = cur.execute("""SELECT mlist FROM users WHERE id = ?""", (id,)).fetchone()
+                mlist = cur.execute("""SELECT ids_of_countries FROM users WHERE id = ?""", (id,)).fetchone()[0]
                 mlist = mlist.split()
                 country_id = mlist[0]
                 try:
@@ -28,8 +27,10 @@ class GeoGesser(discord.Client):
                     pairs = cur.execute("""SELECT name, capital FROM countries WHERE id = ?""",
                                         (country_id,)).fetchall()
                     if message.content.lower().capitalize() == pairs[0][1]:
+                        cur.execute("""UPDATE users SET score = (SELECT score FROM users WHERE id = ?) + 1""", (id, ))
+                        con.commit()
                         await message.chennel.send('Right!')
-                        await message.chennel.send('You win the game! Your score is 0')
+                        await message.chennel.send(f'You win the game! Your general score is {cur.execute("""SELECT score FROM users WHERE id = ?""", (id, )).fetchone()[0]}')
                         cur.execute("""UPDATE users SET processing = None, mlist = None WHERE id = ?""", (id,))
                         con.commit()
                     else:
@@ -38,16 +39,18 @@ class GeoGesser(discord.Client):
                 pairs = cur.execute("""SELECT name, capital FROM countries WHERE id IN (?, ?)""",
                                     (country_id, next_country_id)).fetchall()
                 if message.content.lower().capitalize() == pairs[0][1]:
-                    await message.chennel.send('Right!')
-                    await message.chennel.send(pairs[1][0])
+                    cur.execute("""UPDATE users SET score = (SELECT score FROM users WHERE id = ?) + 1""", (id,))
+                    con.commit()
+                    await message.channel.send('Right!')
+                    await message.channel.send(pairs[1][0])
                     mlist = ' '.join(mlist[1:])
                     cur.execute("""UPDATE users SET mlist = ? WHERE id = ?""", (mlist, id))
                     con.commit()
                 else:
-                    await message.chennel.send('Wrong')
-                    await message.chennel.send('The game have finished')
+                    await message.channel.send('Wrong')
+                    await message.channel.send('The game have finished')
             elif str(processing) == '2':
-                mlist = cur.execute("""SELECT mlist FROM users WHERE id = ?""", (id,)).fetchone()
+                mlist = cur.execute("""SELECT ids_of_countries FROM users WHERE id = ?""", (id,)).fetchone()
                 mlist = mlist.split()
                 country_id = mlist[0]
                 try:
@@ -56,23 +59,34 @@ class GeoGesser(discord.Client):
                     pairs = cur.execute("""SELECT name, capital FROM countries WHERE id = ?""",
                                         (country_id,)).fetchall()
                     if message.content.lower().capitalize() == pairs[0][1]:
-                        await message.chennel.send('Right!')
-                        await message.chennel.send('You win the game! Your score is 0')
-                        cur.execute("""UPDATE users SET processing = None, mlist = None WHERE id = ?""", (id,))
+                        cur.execute("""UPDATE users SET score = (SELECT score FROM users WHERE id = ?) + 1""", (id,))
+                        con.commit()
+                        await message.channel.send('Right!')
+                        await message.channel.send(f'You win the game! Your general score is {cur.execute("""SELECT score FROM users WHERE id = ?""", (id, )).fetchone()[0]}')
+                        cur.execute("""UPDATE users SET processing = Null, ids_of_countries = NUll WHERE id = ?""",
+                                    (id,))
                         con.commit()
 
                     else:
-                        await message.chennel.send('Wrong')
-                        await message.chennel.send('The game have finished')
+                        cur.execute("""UPDATE users SET processing = Null, ids_of_countries = NUll WHERE id = ?""",
+                                    (id,))
+                        con.commit()
+                        await message.channel.send('Wrong')
+                        await message.channel.send('The game have finished')
                 pairs = cur.execute("""SELECT name, capital FROM countries WHERE id IN (?, ?)""",
                                     (country_id, next_country_id)).fetchall()
                 if message.content.lower().capitalize() == pairs[0][0]:
+                    cur.execute("""UPDATE users SET score = (SELECT score FROM users WHERE id = ?) + 1""", (id,))
+                    con.commit()
                     await message.chennel.send('Right!')
                     await message.chennel.send(pairs[1][1])
                     mlist = ' '.join(mlist[1:])
                     cur.execute("""UPDATE users SET mlist = ? WHERE id = ?""", (mlist, id))
                     con.commit()
                 else:
+                    cur.execute("""UPDATE users SET processing = Null, ids_of_countries = NUll WHERE id = ?""",
+                                (id,))
+                    con.commit()
                     await message.chennel.send('Wrong')
                     await message.chennel.send('The game have finished')
         else:
@@ -126,7 +140,7 @@ class GeoGesser(discord.Client):
                 if not id or not processing:
                     await message.channel.send("Game for you isn't started")
                 else:
-                    cur.execute("""UPDATE users SET processing = None, mlist = None WHERE id = ?""", (id,))
+                    cur.execute("""UPDATE users SET processing = Null, ids_of_countries = NUll WHERE id = ?""", (id,))
                     con.commit()
                     await message.channel.send("Game for you have finished")
             elif message.content == '!!help':
