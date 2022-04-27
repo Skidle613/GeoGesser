@@ -1,10 +1,40 @@
 import discord
 from random import shuffle
+
+from requests import get
+
 from key import TOKEN
 from data.db_session import global_init, create_session
 from data.user import User
 from data.country import Country
-from random import randint
+from random import randint, randrange
+
+giving_roles = [(10, 'Новичок в географии'), (50, 'Начинающий географ'), (100, 'Любитель географии'),
+                (200, 'Прошаренный географ'), (500, 'Знаток географии'), (1000, 'Настоящий мастер в географии'),
+                (1500, 'Гуру-географ')]
+
+
+def score_count(user, message):
+    global db_sess
+    score = user.score
+    roles = message.author.guild.roles
+    for elem in giving_roles:
+        if score == elem[0]:
+            if elem[1] not in [role.name for role in roles]:
+                message.author.guild.create_role(elem[1], color=discord.Color.from_rgb(randrange(256), randrange(256),
+                                                                                       randrange(256)))
+            roles = message.author.guild.roles
+            role_id = [role.id for role in roles if role.name == elem[1]]
+            message.author.give_roles(discord.Object(role_id))
+            if elem[0] != 10:
+                role_for_delete = [elem_ for elem_ in message.author.guild.roles if elem_.name == giving_roles[giving_roles.index(elem) - 1][1]][0]
+                message.author.remove_roles(role_for_delete)
+            if elem[0] == 100:
+                user.difficult = 2
+                db_sess.commit()
+            elif elem[0] == 500:
+                user.difficult = 3
+                db_sess.commit()
 
 
 class GeoGesser(discord.Client):
@@ -32,7 +62,7 @@ class GeoGesser(discord.Client):
                     if message.content.lower() == pairs[0][1].lower():
                         user.score += 1
                         db_sess.commit()
-
+                        score_count(user, message)
                         await message.channel.send('Right!')
                         await message.channel.send(f'You win the game! Your general score is {user.score}')
                         user.processing = None
@@ -51,22 +81,7 @@ class GeoGesser(discord.Client):
                 if message.content.lower() == pairs[0][1].lower():
                     user.score += 1
                     db_sess.commit()
-                    if user.score == 100:
-                        roles = message.author.guild.roles
-                        if 'Любитель географии' not in [elem.name for elem in roles]:
-                            await message.author.guild.create_role(name='Любитель географии', colour=(discord.Colour.from_rgb(randint(1, 255), randint(1, 255), randint(1, 255))))
-                        roles = message.author.guild.roles
-                        role_id = [elem.id for elem in roles if elem.name == 'Любитель географии'][0]
-                        await message.author.add_roles(discord.Object(role_id))
-                        user.difficult = 2
-                    if user.score == 2000:
-                        roles = message.author.guild.roles
-                        if 'Знаток географии' not in [elem.name for elem in roles]:
-                            await message.author.guild.create_role(name='Знаток географии', colour=(discord.Colour.from_rgb(randint(1, 255), randint(1, 255), randint(1, 255))))
-                        roles = message.author.guild.roles
-                        role_id = [elem.id for elem in roles if elem.name == 'Знаток географии'][0]
-                        await message.author.add_roles([role_id])
-                        user.difficult = 3
+                    score_count(user, message)
                     await message.channel.send('Right!')
                     await message.channel.send(pairs[1][0])
                     mlist = ' '.join(mlist[1:])
@@ -90,6 +105,7 @@ class GeoGesser(discord.Client):
                     if message.content.lower() == pairs[0][1].lower():
                         user.score += 1
                         db_sess.commit()
+                        score_count(user, message)
                         await message.channel.send('Right!')
                         await message.channel.send(f'You win the game! Your general score is {user.score}')
                         user.processing = None
@@ -108,6 +124,7 @@ class GeoGesser(discord.Client):
                 if message.content.lower() == pairs[0][0].lower():
                     user.score += 1
                     db_sess.commit()
+                    score_count(user, message)
                     await message.channel.send('Right!')
                     await message.channel.send(pairs[1][1])
                     mlist = ' '.join(mlist[1:])
