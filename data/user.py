@@ -14,4 +14,4 @@ class User(SqlAlchemyBase):
     difficult = sqlalchemy.Column()
     processing = sqlalchemy.Column()
     score = sqlalchemy.Column()
-    ids_of_countries = sqlalchemy.Column(sqlalchemy.String, size=999)
+    ids_of_countries = sqlalchemy.Column(sqlalchemy.String)
