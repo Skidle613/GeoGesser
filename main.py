@@ -17,8 +17,7 @@ giving_roles = [(10, 'Новичок в географии'), (50, 'Начина
                 (1500, 'Гуру-географ')]
 
 
-async def score_count(user, message):
-    global db_sess
+async def score_count(user, message, db_sess):
     score = user.score
     roles = message.author.guild.roles
     for elem in giving_roles:
@@ -98,9 +97,9 @@ class GeoGesser(discord.Client):
                     if message.content.lower() == pairs[1].lower():
                         user.score += 1
                         db_sess.commit()
-                        await score_count(user, message)
+                        await score_count(user, message, db_sess)
                         await message.channel.send('Right!')
-                        await message.channel.send(f'You win the game! Your general score is {user.score}')
+                        await message.channel.send(f'{user.name}, you win the game! Your general score is {user.score}')
                         user.processing = None
                         user.ids_of_countries = None
                         db_sess.commit()
@@ -109,7 +108,7 @@ class GeoGesser(discord.Client):
                         user.ids_of_countries = None
                         db_sess.commit()
                         await message.channel.send('Wrong')
-                        await message.channel.send('The game have finished')
+                        await message.channel.send(f'The for {user.name} game have finished')
                     return
                 country_1 = db_sess.query(Country).filter(Country.id == country_id).first()
                 country_2 = db_sess.query(Country).filter(Country.id == next_country_id).first()
@@ -117,7 +116,7 @@ class GeoGesser(discord.Client):
                 if message.content.lower() == pairs[0][1].lower():
                     user.score += 1
                     db_sess.commit()
-                    await score_count(user, message)
+                    await score_count(user, message, db_sess)
                     await message.channel.send('Right!')
                     await message.channel.send(pairs[1][0])
                     mlist = ' '.join(mlist[1:])
@@ -128,7 +127,7 @@ class GeoGesser(discord.Client):
                     user.ids_of_countries = None
                     db_sess.commit()
                     await message.channel.send('Wrong')
-                    await message.channel.send('The game have finished')
+                    await message.channel.send(f'The game for {user.name} have finished')
             elif str(processing) == '2':
                 mlist = user.ids_of_countries
                 mlist = mlist.split()
@@ -141,9 +140,9 @@ class GeoGesser(discord.Client):
                     if message.content.lower() == pairs[0].lower():
                         user.score += 1
                         db_sess.commit()
-                        await score_count(user, message)
+                        await score_count(user, message, db_sess)
                         await message.channel.send('Right!')
-                        await message.channel.send(f'You win the game! Your general score is {user.score}')
+                        await message.channel.send(f'{user.name}, you win the game! Your general score is {user.score}')
                         user.processing = None
                         user.ids_of_countries = None
                         db_sess.commit()
@@ -153,14 +152,14 @@ class GeoGesser(discord.Client):
                         user.ids_of_countries = None
                         db_sess.commit()
                         await message.channel.send('Wrong')
-                        await message.channel.send('The game have finished')
+                        await message.channel.send(f'The game for {user.name} have finished')
                 country_1 = db_sess.query(Country).filter(Country.id == country_id).first()
                 country_2 = db_sess.query(Country).filter(Country.id == next_country_id).first()
                 pairs = ((country_1.name, country_1.capital), (country_2.name, country_2.capital))
                 if message.content.lower() == pairs[0][0].lower():
                     user.score += 1
                     db_sess.commit()
-                    await score_count(user, message)
+                    await score_count(user, message, db_sess)
                     await message.channel.send('Right!')
                     await message.channel.send(pairs[1][1])
                     mlist = ' '.join(mlist[1:])
@@ -171,7 +170,7 @@ class GeoGesser(discord.Client):
                     user.ids_of_countries = None
                     db_sess.commit()
                     await message.channel.send('Wrong')
-                    await message.channel.send('The game have finished')
+                    await message.channel.send(f'The game for {user.name} have finished')
             elif str(processing) == '3':
                 mlist = user.ids_of_countries
                 mlist = mlist.split()
@@ -184,9 +183,9 @@ class GeoGesser(discord.Client):
                     if message.content.lower() == pairs[0].lower():
                         user.score += 1
                         db_sess.commit()
-                        await score_count(user, message)
+                        await score_count(user, message, db_sess)
                         await message.channel.send('Right!')
-                        await message.channel.send(f'You win the game! Your general score is {user.score}')
+                        await message.channel.send(f'{user.name}, you win the game! Your general score is {user.score}')
                         user.processing = None
                         user.ids_of_countries = None
                         db_sess.commit()
@@ -195,14 +194,14 @@ class GeoGesser(discord.Client):
                         user.ids_of_countries = None
                         db_sess.commit()
                         await message.channel.send('Wrong')
-                        await message.channel.send('The game have finished')
+                        await message.channel.send(f'The game for {user.name} have finished')
                 country_1 = db_sess.query(Country).filter(Country.id == country_id).first()
                 country_2 = db_sess.query(Country).filter(Country.id == next_country_id).first()
                 pairs = ((country_1.name, country_1.flag), (country_2.name, country_2.flag))
                 if message.content.lower() == pairs[0][0].lower():
                     user.score += 1
                     db_sess.commit()
-                    await score_count(user, message)
+                    await score_count(user, message, db_sess)
                     await message.channel.send('Right!')
                     await message.channel.send(pairs[1][1])
                     mlist = ' '.join(mlist[1:])
@@ -213,30 +212,46 @@ class GeoGesser(discord.Client):
                     user.ids_of_countries = None
                     db_sess.commit()
                     await message.channel.send('Wrong')
-                    await message.channel.send('The game have finished')
+                    await message.channel.send(f'The game for {user.name} have finished')
             elif str(processing) == '4':
                 mlist = user.ids_of_countries
-                mlist = mlist.split()
+                mlist = mlist.split(' .')
                 if message.content.lower() in mlist:
                     mlist.remove(message.content.lower())
                     user.score += 1
-                    await score_count(user, message)
+                    await score_count(user, message, db_sess)
                     db_sess.commit()
-                    user.ids_of_countries = mlist
                     if len(mlist) == 1:
-                        await message.channel.send('You named all of countries')
+                        await message.channel.send(f'{user.name}, you named all of countries')
                         count = user.score - int(mlist[-1][:-7])
                         time = tiime.time() - user.nick
                         await message.channel.send(f'Your score is {count} in {round(time)} seconds')
+                        user.processing = None
+                        user.ids_of_countries = None
+                        db_sess.commit()
+                    mlist = ' .'.join(mlist)
+                    user.ids_of_countries = mlist
+                    db_sess.commit()
 
                 else:
-                    await message.channel.send('Oops! You named a wrong country. Game have finished')
+                    await message.channel.send(f'Oops! You named a wrong country. Game for {user.name} finished')
                     count = user.score - int(mlist[-1][:-7])
                     time = tiime.time() - user.nick
                     await message.channel.send(f'You wrote {count} countries in {round(time)} seconds')
                     user.processing = None
                     user.ids_of_countries = None
                     db_sess.commit()
+            elif str(processing) == '6':
+                countries = db_sess.query(Country).all()
+                mlist1 = [elem.name.lower() for elem in countries]
+                mlist2 = [elem.name for elem in countries]
+                if message.content.lower() in mlist1:
+                    cntr = db_sess.query(Country).filter(Country.name == mlist2[mlist1.index(message.content.lower())]).first()
+                    await message.channel.send(f'Name: {cntr.name}        Capital: {cntr.capital}        Flag:')
+                    await message.channel.send(cntr.flag)
+                    user.processing = None
+                else:
+                    await message.channel.send("Country doesn't exist")
         else:
             if message.content == '!!game 1':
                 name = message.author.name
@@ -322,10 +337,11 @@ class GeoGesser(discord.Client):
                     id = user.id
                 user.processing = 4
                 user.nick = tiime.time()
+                await message.channel.send('Game is started now! Write a country')
                 countries = db_sess.query(Country).all()
                 mlist = [elem.name.lower() for elem in countries]
                 mlist.append(f'{user.score}.......')
-                mlist = ' '.join(mlist)
+                mlist = ' .'.join(mlist)
                 user.ids_of_countries = mlist
                 db_sess.commit()
             elif message.content == '!!stop':
@@ -342,6 +358,30 @@ class GeoGesser(discord.Client):
                     user.ids_of_countries = None
                     db_sess.commit()
                     await message.channel.send("Game for you have finished")
+            elif message.content == '!!score':
+                name = message.author.name
+                try:
+                    user = db_sess.query(User).filter(User.name == name).first()
+                    id = user.id
+                    await message.channel.send(f'Your score is {user.score}')
+                except Exception:
+                    await message.channel.send('You are not in my database')
+            elif message.content == '!!info':
+                name = message.author.name
+                try:
+                    user = db_sess.query(User).filter(User.name == name).first()
+                    id = user.id
+                except Exception:
+                    user = User()
+                    user.name = name
+                    user.difficult = 1
+                    user.score = 0
+                    db_sess.add(user)
+                    db_sess.commit()
+                    id = user.id
+                user.processing = 6
+                db_sess.commit()
+                await message.channel.send('Which country do you want to know about?')
             elif message.content == '!!help':
                 await message.channel.send("""I'm a bot for geographical games
 All of my commands start with '!!'
@@ -350,11 +390,9 @@ help           shows this message
 game 1       starts a game (gessing capital by the name of country)
 game 2       starts a game (gessing country by the name of capital)
 game 3       starts a game (gessing country by the picture of flag)
-game 4       starts a game (gessing country by the picture of country)
-game 5       starts a game (time texting countries without hints)
+game 4       starts a game (time texting countries without hints)
 stop         finish current game
-clear           delete messages about previous game
-set_roles   set roles for certain score
+score        shows your current score
 info             shows info about country what you want""")
             else:
                 await message.channel.send("Wrong command")
