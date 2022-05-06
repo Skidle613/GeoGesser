@@ -241,6 +241,20 @@ class GeoGesser(discord.Client):
                     user.processing = None
                     user.ids_of_countries = None
                     db_sess.commit()
+            elif str(processing) == '5':
+                score = int(message.content.split()[0])
+                if score in [elem[0] for elem in giving_roles]:
+                    index = [elem[0] for elem in giving_roles].index(score)
+                    role = [role for role in message.author.guild.roles if role.name == giving_roles[index][1]][0]
+                    giving_roles[index] = (giving_roles[index][0], message.content.split()[1])
+                    await message.author.guild.create_role(name=giving_roles[index][1],
+                                                           color=discord.Color.from_rgb(randrange(256), randrange(256),
+                                                                                        randrange(256)))
+                    role_2 = [role for role in message.author.guild.roles if role.name == giving_roles[index][1]][0]
+                    for member in message.author.guild.members:
+                        if role in member.roles:
+                            await member.remove_roles(role)
+                            await member.add_roles(role_2)
             elif str(processing) == '6':
                 countries = db_sess.query(Country).all()
                 mlist1 = [elem.name.lower() for elem in countries]
@@ -366,6 +380,23 @@ class GeoGesser(discord.Client):
                     await message.channel.send(f'Your score is {user.score}')
                 except Exception:
                     await message.channel.send('You are not in my database')
+            elif message.content == '!!set_roles':
+                name = message.author.name
+                try:
+                    user = db_sess.query(User).filter(User.name == name).first()
+                    id = user.id
+                except Exception:
+                    user = User()
+                    user.name = name
+                    user.difficult = 1
+                    user.score = 0
+                    db_sess.add(user)
+                    db_sess.commit()
+                    id = user.id
+                user.processing = 5
+                db_sess.commit()
+                await message.channel.send('Write score for which you want to change role and name separated by space')
+                await message.channel.send('Available: 10, 50, 100, 200, 500, 1000, 1500')
             elif message.content == '!!info':
                 name = message.author.name
                 try:

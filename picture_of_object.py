@@ -1,3 +1,6 @@
+import requests
+
+
 def picture_of_object(toponym_to_find):
     # Возвращает контент картинки, который надо записать в файл
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
@@ -19,7 +22,7 @@ def picture_of_object(toponym_to_find):
     delta2 = abs(float(upper_corner[1]) - float(upper_corner[1]))
     map_params = {
         'll': ",".join([toponym_longitude, toponym_lattitude]),
-        'spn': ",".join([delta1, delta2]),
+        'spn': ",".join([str(delta1), str(delta2)]),
         'l': 'map'
     }
     map_api_server = 'http://static-maps.yandex.ru/1.x/'
